@@ -20,15 +20,19 @@ Run Flask app:
 export FLASK_APP=app.py
 flask run
 ```
+Accessible at http://localhost:5000
 
 To Stop:
+```
 Press CTRL+C
+```
 
 Run Dockerfile:
 ```shell
 docker build -t cheukky/flaskapp .
 docker run --rm -p 8888:5000 --name flaskapp cheukky/flaskapp
 ```
+Accessible at http://192.168.99.100:8888/
 
 To Stop:
 ```shell
