@@ -1,5 +1,6 @@
-from flask import Flask, render_template
+from flask import Flask, render_template, flash, redirect, request, url_for
 import os
+import sys
 import random
 
 
@@ -40,27 +41,49 @@ def create_app(test_config=None):
         "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr03/15/10/anigif_enhanced-buzz-11980-1381846269-1.gif"
         ]
 
-
-    @app.route('/')
+    @app.route('/', methods=('GET', 'POST'))
     def index():
+        if request.method == 'POST':
+            error = None
+            if error is None:
+                if "upload" in request.form:
+                    return redirect(url_for('result'))
+            # remember to error if invalid file
+            # flash(error)
+
         url = random.choice(images)
         return render_template('index.html', url=url)
 
-
-    @app.route('/result')
+    @app.route('/result', methods=('GET', 'POST'))
     def result():
+        if request.method == 'POST':
+            if "yes" in request.form:
+                return redirect(url_for('thanks'))
+            elif "no" in request.form:
+                return redirect(url_for('training'))
+
         url = "https://vignette.wikia.nocookie.net/gundam/images/4/43/Gundam_Barbatos_standing_over_Sandoval_Rueters_fallen_suit.png/revision/latest/scale-to-width-down/600?cb=20161024131944"
         return render_template('result.html', url=url)
 
-
-    @app.route('/thanks')
+    @app.route('/thanks', methods=('GET', 'POST'))
     def thanks():
+        if request.method == 'POST':
+            if "again" in request.form:
+                return redirect(url_for('index'))
+
         url = "https://vignette.wikia.nocookie.net/gundam/images/a/a7/636723.jpg/revision/latest/scale-to-width-down/600?cb=20141018031606"
         return render_template('thanks.html', url=url)
 
-
-    @app.route('/training')
+    @app.route('/training', methods=('GET', 'POST'))
     def training():
+        if request.method == 'POST':
+            error = None
+            if error is None:
+                if "confirm" in request.form:
+                    return redirect(url_for('thanks'))
+            # remember to error if not one of the available labels
+            # flash(error)
+
         url = "https://vignette.wikia.nocookie.net/gundam/images/9/93/00QanTSwordBitsBeam.jpg/revision/latest/scale-to-width-down/600?cb=20120921123309"
         return render_template('training.html', url=url)
 
