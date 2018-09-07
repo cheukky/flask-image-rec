@@ -15,9 +15,15 @@ Gives user the chance to apply correct label to image, which is then saved to da
 Allows user to start again
 
 ## Usage
-Run Flask app:
+Using Python3:
+
+Required to have Python3 installed.
+
+Create and activate virtualenv, then populate the environment with the requisite packages
+<!--  code for installing from requirements goes here -->
+
 ```shell
-export FLASK_APP=app.py
+export FLASK_APP=app
 flask run
 ```
 Accessible at http://localhost:5000
@@ -27,7 +33,10 @@ To Stop:
 Press CTRL+C
 ```
 
-Run Dockerfile:
+Using Docker:
+
+Required to have Docker installed
+
 ```shell
 docker build -t cheukky/flaskapp .
 docker run --rm -p 8888:5000 --name flaskapp cheukky/flaskapp
