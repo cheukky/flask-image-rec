@@ -1,4 +1,4 @@
-# flask-image-rec
+# flask-image-rec [![Build Status](https://travis-ci.com/cheukky/flask-image-rec.svg?branch=master)](https://travis-ci.com/cheukky/flask-image-rec)
 This goal of this project is to create a web app that allows users to upload pictures of Gundam faces and get a reasonably accurate prediction back
 
 ## Pages
@@ -19,9 +19,12 @@ Using Python3:
 
 Required to have Python3 installed.
 
-Create and activate virtualenv, then populate the environment with the requisite packages
-<!--  code for installing from requirements goes here -->
+1. Create and activate virtualenv, then populate the environment with the requisite packages
+```shell
+pip install -r requirements.txt
+```
 
+2. Then run the app
 ```shell
 export FLASK_APP=app
 flask run
