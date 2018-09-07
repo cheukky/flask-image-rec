@@ -1,4 +1,5 @@
 import pytest
+import os
 # from flask_testing import TestCase
 from app import create_app
 
@@ -20,6 +21,12 @@ def app():
     #     get_db().executescript(_data_sql)
 
     yield app
+
+    dirPath = "data/uploads/"
+    fileList = os.listdir(dirPath)
+    for fileName in fileList:
+        if fileName != 'test.jpg':
+            os.remove(dirPath+"/"+fileName)
     #
     # # close and remove the temporary database
     # os.close(db_fd)
