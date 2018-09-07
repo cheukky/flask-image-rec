@@ -2,7 +2,6 @@ from flask import Flask, render_template, flash, redirect, request, url_for
 import os
 from werkzeug.utils import secure_filename
 import random
-import sys
 
 UPLOAD_FOLDER = 'data/uploads'
 ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
@@ -60,7 +59,6 @@ def create_app(test_config=None):
             if 'file' not in request.files:
                 flash('Choose a file')
                 return redirect(request.url)
-            print(request.files, file=sys.stderr)
             file = request.files['file']
             # if user does not select file, browser also
             # submit an empty part without filename

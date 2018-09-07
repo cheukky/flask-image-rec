@@ -1,5 +1,4 @@
 from io import BytesIO
-import os
 
 
 def test_index_submit_nofile(client):

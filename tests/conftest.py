@@ -25,7 +25,7 @@ def app():
     dirPath = "data/uploads/"
     fileList = os.listdir(dirPath)
     for fileName in fileList:
-        if fileName != 'test.jpg':
+        if fileName != 'test.jpg' and fileName != '.gitignore':
             os.remove(dirPath+"/"+fileName)
     #
     # # close and remove the temporary database
