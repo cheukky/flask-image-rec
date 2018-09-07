@@ -21,9 +21,15 @@
     <div class="container">
       <h4>Start Page</h4>
       <img src="{{url}}" />
-      <br />
-      <form method="post">
+      <form method=post enctype=multipart/form-data>
+        <br />
+        <input type=file name=file>
         <input type="submit" name="upload" value="Upload">
+        <br /><br />
+        {% for message in get_flashed_messages() %}
+        {{ message }}
+        {% endfor %}
+        <br />
       </form>
   </div>
 </body>

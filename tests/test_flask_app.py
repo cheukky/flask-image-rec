@@ -6,7 +6,7 @@ def test_index(client):
 
 def test_result(client):
     """Test result page."""
-    rv = client.get('/result')
+    rv = client.get('/result/test.jpg')
     assert b'Result' in rv.data
 
 

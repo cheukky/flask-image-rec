@@ -17,7 +17,7 @@ class Test_RenderTemplate(TestCase):
         self.assert_template_used('index.html')
 
     def test_assert_result_used(self):
-        self.client.get("/result")
+        self.client.get("/result/test.jpg")
         self.assert_template_used('result.html')
 
     def test_assert_thanks_used(self):

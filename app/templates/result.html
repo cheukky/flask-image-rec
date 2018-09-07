@@ -20,7 +20,7 @@
   <body>
     <div class="container">
       <h4>Result</h4>
-      <img src="{{url}}" />
+      <img src="{{ url_for('send_file', filename=filename) }}" width="600"/>
       <br />
       <form method="post">
         <input type="submit" name="yes" value="Yes">
