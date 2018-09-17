@@ -2,37 +2,24 @@ from flask import Flask, render_template, flash, redirect, request, url_for
 import os
 from werkzeug.utils import secure_filename
 import random
-
-UPLOAD_FOLDER = 'data/uploads'
-ALLOWED_EXTENSIONS = set(['png', 'jpg', 'jpeg'])
-
-# list of cat images
-images = [
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr05/15/9/anigif_enhanced-buzz-26388-1381844103-11.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr01/15/9/anigif_enhanced-buzz-31540-1381844535-8.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr05/15/9/anigif_enhanced-buzz-26390-1381844163-18.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr06/15/10/anigif_enhanced-buzz-1376-1381846217-0.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr03/15/9/anigif_enhanced-buzz-3391-1381844336-26.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr06/15/10/anigif_enhanced-buzz-29111-1381845968-0.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr03/15/9/anigif_enhanced-buzz-3409-1381844582-13.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr02/15/9/anigif_enhanced-buzz-19667-1381844937-10.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr05/15/9/anigif_enhanced-buzz-26358-1381845043-13.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr06/15/9/anigif_enhanced-buzz-18774-1381844645-6.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr06/15/9/anigif_enhanced-buzz-25158-1381844793-0.gif",
-    "http://img.buzzfeed.com/buzzfeed-static/static/2013-10/enhanced/webdr03/15/10/anigif_enhanced-buzz-11980-1381846269-1.gif"
-    ]
+from flask import send_from_directory
+from app import ml_functions as ml, configs
+import numpy as np
 
 
 def allowed_file(filename):
     return '.' in filename and \
-           filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+           filename.rsplit('.', 1)[1].lower() in configs.ALLOWED_EXTENSIONS
 
 
 def create_app(test_config=None):
     # create and configure the app
     app = Flask(__name__, instance_relative_config=True)
     app.config['MAX_CONTENT_LENGTH'] = 2 * 1024 * 1024
-    app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+    app.config['UPLOAD_FOLDER'] = configs.UPLOAD_FOLDER
+    app.config['MODEL_LOC'] = configs.MODEL_LOC
+    app.config['DATASET_LOC'] = configs.DATASET_LOC
+    app.model = ml.load_saved_model(app.config['MODEL_LOC'])
 
     app.config.from_mapping(
         SECRET_KEY='dev',
@@ -72,10 +59,8 @@ def create_app(test_config=None):
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 return redirect(url_for('result', filename=filename))
 
-        url = random.choice(images)
+        url = random.choice(configs.images)
         return render_template('index.html', url=url)
-
-    from flask import send_from_directory
 
     @app.route('/result/<filename>', methods=('GET', 'POST'))
     def result(filename):
@@ -84,11 +69,14 @@ def create_app(test_config=None):
                 return redirect(url_for('thanks'))
             elif "no" in request.form:
                 return redirect(url_for('training'))
-        return render_template('result.html', filename=filename)
+        img = ml.parse_image(app.config['UPLOAD_FOLDER'] + "/" + filename)
+        pred, prob, _ = ml.predict_image(img, app.model)
+        return render_template('result.html', filename=filename,
+                               prediction=pred, probability=prob)
 
     @app.route('/uploads/<filename>')
     def send_file(filename):
-        return send_from_directory('../'+UPLOAD_FOLDER, filename)
+        return send_from_directory('../'+app.config['UPLOAD_FOLDER'], filename)
 
     @app.route('/thanks', methods=('GET', 'POST'))
     def thanks():

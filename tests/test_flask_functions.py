@@ -1,4 +1,16 @@
 from io import BytesIO
+import numpy as np
+import tensorflow as tf
+from PIL import Image
+
+
+def create_test_image():
+    file = BytesIO()
+    image = Image.new('RGB', size=(50, 50), color=(0, 0, 0))
+    image.save(file, 'png')
+    file.name = 'test.png'
+    file.seek(0)
+    return file
 
 
 def test_index_submit_nofile(client):
@@ -33,24 +45,24 @@ def test_index_submit_wrongtype2(client):
 
 def test_index_submit_correct(client):
     """Test index page submit right type."""
-    rv = client.post('/', data={'file': (BytesIO(b'my file contents'),
-                                         'test_file.png') },
+    rv = client.post('/', data={'file': (BytesIO(create_test_image().read()),
+                                         'test.png') },
                      follow_redirects=True)
     assert b'Result' in rv.data
 
 
 def test_index_submit_correct2(client):
     """Test index page submit right type."""
-    rv = client.post('/', data={'file': (BytesIO(b'my file contents'),
-                                         'test_file.jpg') },
+    rv = client.post('/', data={'file': (BytesIO(create_test_image().read()),
+                                         'test.jpg') },
                      follow_redirects=True)
     assert b'Result' in rv.data
 
 
 def test_index_submit_correct3(client):
     """Test index page submit right type."""
-    rv = client.post('/', data={'file': (BytesIO(b'my file contents'),
-                                         'test_file.jpeg') },
+    rv = client.post('/', data={'file': (BytesIO(create_test_image().read()),
+                                         'test.jpeg') },
                      follow_redirects=True)
     assert b'Result' in rv.data
 
