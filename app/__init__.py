@@ -5,6 +5,9 @@ import random
 from flask import send_from_directory
 from app import ml_functions as ml, configs
 import numpy as np
+import sys
+import tensorflow as tf
+from tensorflow import keras
 
 
 def allowed_file(filename):
@@ -19,7 +22,9 @@ def create_app(test_config=None):
     app.config['UPLOAD_FOLDER'] = configs.UPLOAD_FOLDER
     app.config['MODEL_LOC'] = configs.MODEL_LOC
     app.config['DATASET_LOC'] = configs.DATASET_LOC
-    app.model = ml.load_saved_model(app.config['MODEL_LOC'])
+
+    app.model = keras.models.load_model(app.config['MODEL_LOC'])
+    app.model._make_predict_function()
 
     app.config.from_mapping(
         SECRET_KEY='dev',
@@ -59,18 +64,26 @@ def create_app(test_config=None):
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
                 return redirect(url_for('result', filename=filename))
 
-        url = random.choice(configs.images)
-        return render_template('index.html', url=url)
+        return render_template('index.html')
 
     @app.route('/result/<filename>', methods=('GET', 'POST'))
     def result(filename):
+        img = ml.parse_image(app.config['UPLOAD_FOLDER'] + "/" + filename)
+
+        IMG_ARRAY_LOC = app.config['UPLOAD_FOLDER'] + "/" + filename + ".npz"
+        np.savez_compressed(IMG_ARRAY_LOC, new_img=img)
+
+        pred, prob, array = ml.predict_image(img, app.model)
+        ml.save_value_array(array, filename)
+
         if request.method == 'POST':
             if "yes" in request.form:
-                return redirect(url_for('thanks'))
+                return redirect(url_for('thanks',
+                                        filename=filename,
+                                        label=np.argmax(array)))
             elif "no" in request.form:
-                return redirect(url_for('training'))
-        img = ml.parse_image(app.config['UPLOAD_FOLDER'] + "/" + filename)
-        pred, prob, _ = ml.predict_image(img, app.model)
+                return redirect(url_for('training', filename=filename))
+
         return render_template('result.html', filename=filename,
                                prediction=pred, probability=prob)
 
@@ -78,26 +91,63 @@ def create_app(test_config=None):
     def send_file(filename):
         return send_from_directory('../'+app.config['UPLOAD_FOLDER'], filename)
 
-    @app.route('/thanks', methods=('GET', 'POST'))
-    def thanks():
+    # def train_model(train_img, train_label):
+    #     app.model.fit(train_img, train_label, epoch=10)
+    #     return app.model
+
+    @app.route('/thanks/<filename>&&<label>', methods=('GET', 'POST'))
+    def thanks(filename, label):
         if request.method == 'POST':
             if "again" in request.form:
                 return redirect(url_for('index'))
 
-        url = "https://vignette.wikia.nocookie.net/gundam/images/a/a7/636723.jpg/revision/latest/scale-to-width-down/600?cb=20141018031606"
-        return render_template('thanks.html', url=url)
+        IMG_ARRAY_LOC = app.config['UPLOAD_FOLDER'] + "/" + filename + ".npz"
+        if(os.path.isfile(IMG_ARRAY_LOC)):
+            with np.load(IMG_ARRAY_LOC) as new_data:
+                new_img = new_data['new_img']
+            with np.load(configs.DATASET_LOC) as data:
+                saved_train_img = data['train_img']
+                saved_train_label = data['train_label']
+            train_img, train_label = ml.add_training_data(new_img, label,
+                                                          saved_train_img,
+                                                          saved_train_label)
+            print(train_img.shape, train_label.shape, file=sys.stderr)
+            app.model.fit(train_img, train_label, epochs=10)
+            # loop.run_until_complete(train_model(train_img, train_label))
 
-    @app.route('/training', methods=('GET', 'POST'))
-    def training():
+            os.remove(IMG_ARRAY_LOC)
+
+        return render_template('thanks.html')
+
+    @app.route('/training/<filename>', methods=('GET', 'POST'))
+    def training(filename):
         if request.method == 'POST':
-            error = None
-            if error is None:
-                if "confirm" in request.form:
-                    return redirect(url_for('thanks'))
-            # remember to error if not one of the available labels
-            # flash(error)
+            if "confirm" in request.form:
+                if 'labels' not in request.form:
+                    flash('Choose a label')
+                    return redirect(request.url)
+                label = request.form['labels']
+                if label == "default":
+                    flash('Choose a label')
+                    return redirect(request.url)
+                else:
+                    return redirect(url_for('thanks',
+                                            filename=filename,
+                                            label=configs.labels.index(label)))
 
-        url = "https://vignette.wikia.nocookie.net/gundam/images/9/93/00QanTSwordBitsBeam.jpg/revision/latest/scale-to-width-down/600?cb=20120921123309"
-        return render_template('training.html', url=url)
+            if "restart" in request.form:
+                return redirect(url_for('index'))
+
+        return render_template('training.html', labels=configs.labels[1:])
+
+    @app.after_request
+    def add_header(response):
+        """
+        Add headers to both force latest IE rendering engine or Chrome Frame,
+        and also to cache the rendered page for 10 minutes.
+        """
+        response.headers['X-UA-Compatible'] = 'IE=Edge,chrome=1'
+        response.headers['Cache-Control'] = 'public, max-age=0'
+        return response
 
     return app

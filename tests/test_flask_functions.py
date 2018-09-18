@@ -1,7 +1,6 @@
 from io import BytesIO
-import numpy as np
-import tensorflow as tf
 from PIL import Image
+import os
 
 
 def create_test_image():
@@ -69,7 +68,11 @@ def test_index_submit_correct3(client):
 
 def test_result_yes(client):
     """Test result page yes button."""
-    rv = client.post('/result/test.jpg', data=dict(yes='Yes'),
+    filename = "test.jpg"
+    IMG_ARRAY_LOC = 'data/uploads' + "/" + filename + ".npz"
+    if(os.path.isfile(IMG_ARRAY_LOC)):
+        os.remove(IMG_ARRAY_LOC)
+    rv = client.post('/result/'+filename, data=dict(yes='Yes'),
                      follow_redirects=True)
     assert b'Thanks' in rv.data
 
@@ -83,13 +86,13 @@ def test_result_no(client):
 
 def test_thanks_again(client):
     """Test thanks page start again button."""
-    rv = client.post('/thanks', data=dict(again='Start Again'),
+    rv = client.post('/thanks/test10.jpg&&10', data=dict(again='Start Again'),
                      follow_redirects=True)
-    assert b'Start Page' in rv.data
+    assert b'Upload' in rv.data
 
 
 def test_training_confirm(client):
     """Test training page confirm button."""
-    rv = client.post('/training', data=dict(confirm='Confirm'),
+    rv = client.post('/training/test10.jpg', data=dict(confirm='Confirm', labels="Strike Gundam"),
                      follow_redirects=True)
     assert b'Thanks' in rv.data

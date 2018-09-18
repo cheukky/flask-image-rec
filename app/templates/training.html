@@ -10,7 +10,7 @@
         max-width: 700px;
         margin: 10px auto;
         /* border: 20px solid white; */
-        padding: 5px;
+        padding: 50px;
         text-align: center;
       }
       h4 {
@@ -20,11 +20,23 @@
   </head>
   <body>
     <div class="container">
-      <h4>Training</h4>
-      <img src="{{url}}" />
+      <h4>Help us train our model!</h4>
       <br />
+      <p>Please identify the suit you just uploaded</p>
       <form method="post">
+        <select name= labels>
+            <option value= "default" SELECTED>Choose one...</option>
+            {% for mobile_suit in labels %}
+            <option value= "{{mobile_suit}}" >{{mobile_suit}}</option>
+            {% endfor %}
+        </select>
         <input type="submit" name="confirm" value="Confirm">
+        <br /><br />
+        {% for message in get_flashed_messages() %}
+        {{ message }}
+        {% endfor %}
+      <br/ >
+        <input type="submit" name="restart" value="Identify something else instead" style="margin: 70px 10px;">
       </form>
     </div>
   </body>
