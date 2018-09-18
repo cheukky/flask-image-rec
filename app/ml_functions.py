@@ -3,12 +3,16 @@ import tensorflow as tf
 from tensorflow import keras
 
 # Helper libraries
-import numpy as np
-import matplotlib.pyplot as plt
-import h5py
 import os
+import numpy as np
+import matplotlib as mpl
+import h5py
 from app import configs
 import sys
+
+if os.environ.get('DISPLAY', '') == '':
+    mpl.use('Agg')
+import matplotlib.pyplot as plt
 
 
 # upload one image
