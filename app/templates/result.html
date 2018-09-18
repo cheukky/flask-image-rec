@@ -16,7 +16,7 @@
         padding: 5px;
       }
       div.container {
-        max-height: 500px;
+        max-height: 300px;
         max-width: 700px;
         margin: 10px auto;
         /* border: 20px solid white; */
@@ -39,12 +39,12 @@
           <img src="{{ url_for('send_file', filename="plot_"+filename) }}" alt="Prediction Array" style="width:100%">
         </div>
       </div>
-      <br />
       <p> Is the image <b>{{prediction}}</b> (Probability: {{probability}}%)? </p>
-      <br />
       <form method="post">
         <input type="submit" name="yes" value="Yes">
         <input type="submit" name="no" value="No">
+        <br/ >
+        <input type="submit" name="restart" value="Identify something else" style="margin: 15px 10px;">
       </form>
     </div>
   </body>

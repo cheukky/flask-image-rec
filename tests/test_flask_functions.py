@@ -93,6 +93,7 @@ def test_thanks_again(client):
 
 def test_training_confirm(client):
     """Test training page confirm button."""
-    rv = client.post('/training/test10.jpg', data=dict(confirm='Confirm', labels="Strike Gundam"),
+    rv = client.post('/training/test10.jpg',
+                     data=dict(confirm='Confirm', labels="Strike Gundam"),
                      follow_redirects=True)
     assert b'Thanks' in rv.data

@@ -21,9 +21,9 @@ class Test_RenderTemplate(TestCase):
         self.assert_template_used('result.html')
 
     def test_assert_thanks_used(self):
-        self.client.get("/thanks/test10.jpg&&10")
+        self.client.get("/thanks/tes10.jpg%26%2610")
         self.assert_template_used('thanks.html')
 
     def test_assert_training_used(self):
-        self.client.get("/training/test.jpg")
+        self.client.get("/training/tes10.jpg")
         self.assert_template_used('training.html')

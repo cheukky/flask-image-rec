@@ -1,13 +1,12 @@
 from flask import Flask, render_template, flash, redirect, request, url_for
 import os
 from werkzeug.utils import secure_filename
-import random
 from flask import send_from_directory
 from app import ml_functions as ml, configs
 import numpy as np
 import sys
-import tensorflow as tf
 from tensorflow import keras
+from .decorators import asynch
 
 
 def allowed_file(filename):
@@ -83,6 +82,8 @@ def create_app(test_config=None):
                                         label=np.argmax(array)))
             elif "no" in request.form:
                 return redirect(url_for('training', filename=filename))
+            elif "restart" in request.form:
+                return redirect(url_for('index'))
 
         return render_template('result.html', filename=filename,
                                prediction=pred, probability=prob)
@@ -91,9 +92,12 @@ def create_app(test_config=None):
     def send_file(filename):
         return send_from_directory('../'+app.config['UPLOAD_FOLDER'], filename)
 
-    # def train_model(train_img, train_label):
-    #     app.model.fit(train_img, train_label, epoch=10)
-    #     return app.model
+    @asynch
+    def train_model(app, train_img, train_label):
+        with app.app_context():
+            np.savez_compressed(configs.DATASET_LOC, train_img=train_img,
+                                train_label=train_label)
+            app.model.fit(train_img, train_label, epochs=10)
 
     @app.route('/thanks/<filename>&&<label>', methods=('GET', 'POST'))
     def thanks(filename, label):
@@ -111,10 +115,7 @@ def create_app(test_config=None):
             train_img, train_label = ml.add_training_data(new_img, label,
                                                           saved_train_img,
                                                           saved_train_label)
-            print(train_img.shape, train_label.shape, file=sys.stderr)
-            app.model.fit(train_img, train_label, epochs=10)
-            # loop.run_until_complete(train_model(train_img, train_label))
-
+            train_model(app, train_img, train_label)
             os.remove(IMG_ARRAY_LOC)
 
         return render_template('thanks.html')
