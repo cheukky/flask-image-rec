@@ -1,8 +1,6 @@
 # our base image
 FROM tensorflow/tensorflow:1.10.0
 
-#RUN apk add --no-cache --virtual .build-deps build-base python3-dev freetype-dev libpng-dev openblas-dev
-
 # install Python modules needed by the Python app
 COPY requirements.txt /usr/src/
 RUN pip install --no-cache-dir -r /usr/src/requirements.txt
