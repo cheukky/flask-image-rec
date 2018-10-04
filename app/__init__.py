@@ -4,7 +4,6 @@ from werkzeug.utils import secure_filename
 from flask import send_from_directory
 from app import ml_functions as ml, configs
 import numpy as np
-import sys
 from tensorflow import keras
 from .decorators import asynch
 
@@ -95,7 +94,8 @@ def create_app(test_config=None):
     @asynch
     def train_model(app, train_img, train_label):
         with app.app_context():
-            np.savez_compressed(configs.DATASET_LOC, train_img=train_img,
+            app.config['DATASET_LOC'] = 'data/mod_dataset.npz'
+            np.savez_compressed(app.config['DATASET_LOC'], train_img=train_img,
                                 train_label=train_label)
             app.model.fit(train_img, train_label, epochs=10)
 
